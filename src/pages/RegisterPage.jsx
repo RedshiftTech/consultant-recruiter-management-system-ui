@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../api/authApi";
+import { getApiErrorMessage, registerUser } from "../api/authApi";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -39,6 +39,11 @@ const RegisterPage = () => {
     if (!formData.firstName.trim()) return "First name is required";
     if (!formData.lastName.trim()) return "Last name is required";
     if (!formData.email.trim()) return "Email is required";
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      return "Enter a valid email address";
+    }
+
     if (!formData.mobileNumber.trim()) return "Mobile number is required";
 
     if (!/^[0-9]{10}$/.test(formData.mobileNumber)) {
@@ -86,12 +91,12 @@ const RegisterPage = () => {
         navigate("/login");
       }, 1000);
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Registration failed. Please check backend and try again.";
-
-      setError(errorMessage);
+      setError(
+        getApiErrorMessage(
+          err,
+          "Registration failed. Please check your connection and try again."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -108,10 +113,10 @@ const RegisterPage = () => {
           </div>
         </div>
 
-        {message && <div className="success-message">{message}</div>}
-        {error && <div className="error-message">{error}</div>}
+        {message && <div className="success-message" role="status">{message}</div>}
+        {error && <div className="error-message" role="alert">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} aria-busy={loading} noValidate>
 
           <div className="register-form-row">
             <div className="register-form-group">
